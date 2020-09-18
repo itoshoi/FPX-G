@@ -2,56 +2,59 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
-using Newtonsoft.Json.Linq;
 using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(LineRenderer))]
-public class Node : MonoBehaviour
+public abstract class Node : MonoBehaviour
 {
-    private const string BaseUrl = "http://ja.dbpedia.org/";
-    private const string SparqlUrl = BaseUrl + "sparql";
+    public enum Type
+    {
+        Default,
+        ResourceNode,
+        LiteralNode
+    }
+    
+    #region Constant
+
+    protected const string BaseUrl = "http://ja.dbpedia.org/";
+    protected const string SparqlUrl = BaseUrl + "sparql";
+
+    // ばね定数
+    protected const float SpringConstant = 3;
+
+    // 減衰定数
+    protected const float SpringDecay = 3;
+
+    // クーロン力の定数
+    protected const float CoulombConstant = 0.5f;
+    
+    protected readonly Dictionary<(Type type1, Type type2), float> LinkedNodeDistance = new Dictionary<(Type t1, Type t2), float>
+    {
+        {(Type.ResourceNode, Type.ResourceNode), 2},
+        {(Type.ResourceNode, Type.LiteralNode), 0.15f},
+        {(Type.LiteralNode, Type.ResourceNode), 0.15f},
+        {(Type.LiteralNode, Type.LiteralNode), 0.15f},
+    };
+
+    #endregion
+
+    public Type NodeType { get; protected set; }
+    public Dictionary<string, Node> linkedNodes = new Dictionary<string, Node>();
 
     private Camera _camera;
-    public List<Node> linkedNodes = new List<Node>();
-    private readonly List<string> _linkedNodeNames = new List<string>();
+    protected Rigidbody NodeRigidbody;
     private LineRenderer _lineRenderer;
 
-    [SerializeField] private TextMeshPro titleText;
-
-    [FormerlySerializedAs("targetDistance")] [SerializeField] private float linkedNodeDistance = 1;
-    // ばね定数
-    private const float SpringConstant = 1;
-    // 減衰定数
-    private const float SpringDecay = 1;
-    
-    // クーロン力の定数
-    private const float CoulombConstant = 0.01f;
-
-    public string Name { get; private set; }
-    private Rigidbody NodeRigidbody { get; set; }
-
-    public static Node Instantiate(string name, Vector3 pos, Transform parent = null)
-    {
-        var prefab = Resources.Load<Node>("Node");
-        var obj = Instantiate(prefab, pos, Quaternion.identity, parent);
-        obj.Name = name;
-        obj.name = name;
-        return obj;
-    }
-
-    private void Start()
+    protected virtual void Awake()
     {
         _camera = Camera.main;
         // _linkedNodes = GameObject.FindGameObjectsWithTag("Node").Select(go => go.GetComponent<Node>()).ToList();
         NodeRigidbody = GetComponent<Rigidbody>();
         _lineRenderer = GetComponent<LineRenderer>();
+    }
 
+    protected virtual void Start()
+    {
         Init();
     }
 
@@ -66,10 +69,21 @@ public class Node : MonoBehaviour
         AddForce();
     }
 
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag.Contains("Node"))
+            AddCoulombForce(other.GetComponentInParent<Node>());
+    }
+
+    protected virtual void Init()
+    {
+        // UpdateRotation();
+    }
+
     private void UpdateLine()
     {
         _lineRenderer.useWorldSpace = true;
-        var positions = linkedNodes.Select(node => node.transform.position).ToList();
+        var positions = linkedNodes.Select(node => node.Value.transform.position).ToList();
         positions.Add(transform.position);
 
         _lineRenderer.positionCount = positions.Count * 2;
@@ -82,29 +96,33 @@ public class Node : MonoBehaviour
 
     private void UpdateRotation()
     {
-        transform.forward = transform.position - _camera.transform.position;
+        var transform1 = transform;
+        transform1.forward = transform1.position - _camera.transform.position;
     }
+
+    #region AddForce
 
     private void AddForce()
     {
-        AddCoulombForce();
+        // AddCoulombForce();
         AddSpringForce();
     }
 
     /// <summary>
-    /// 全ノード間にクーロン力を適用する
+    /// このノードと特定のノードとの間にクーロン力を適用する
     /// </summary>
-    private void AddCoulombForce()
+    private void AddCoulombForce(Component node)
     {
-        foreach (var node in SystemManager.AllNodes)
-        {
-            if(node == this) continue;
-            
-            var vector = transform.position - node.transform.position;
-            var distance = vector.magnitude;
-            var direction = vector.normalized;
+        if (node == this) return;
 
+        var vector = transform.position - node.transform.position;
+        var distance = vector.magnitude;
+
+        if (distance < 2)
+        {
+            var direction = vector.normalized;
             var force = CoulombConstant * direction / Mathf.Pow(distance, 2);
+
             NodeRigidbody.AddForce(force);
         }
     }
@@ -117,66 +135,15 @@ public class Node : MonoBehaviour
         // リンクされたノード間にはばねの力が働く
         foreach (var linkedNode in linkedNodes)
         {
-            var vector = transform.position - linkedNode.transform.position;
+            var vector = transform.position - linkedNode.Value.transform.position;
             var distance = vector.magnitude;
             var direction = vector.normalized;
 
-            var force = SpringConstant * (linkedNodeDistance - distance) * direction - SpringDecay * NodeRigidbody.velocity;
+            var force = SpringConstant * (LinkedNodeDistance[(NodeType, linkedNode.Value.NodeType)] - distance) * direction -
+                        SpringDecay * NodeRigidbody.velocity;
             NodeRigidbody.AddForce(force);
         }
     }
 
-    private void Init()
-    {
-        StartCoroutine(InitCoroutine());
-    }
-
-    private IEnumerator InitCoroutine()
-    {
-        var query = "?query=select distinct * where { <http://ja.dbpedia.org/resource/" + Name + "> ?p ?o .  }";
-
-        Debug.Log(SparqlUrl + query);
-
-        using (var webRequest = UnityWebRequest.Get(SparqlUrl + query))
-        {
-            webRequest.SetRequestHeader("Accept", "application/sparql-results+json");
-            yield return webRequest.SendWebRequest();
-
-            Debug.Log(webRequest.downloadHandler.text);
-
-            titleText.text = Name;
-
-            var jo = JObject.Parse(webRequest.downloadHandler.text);
-
-            foreach (var po in jo["results"]["bindings"])
-            {
-                if (po["p"]["value"].Value<string>().Contains("http://ja.dbpedia.org/property"))
-                {
-                    if (po["o"]["type"].Value<string>() == "uri" &&
-                        !po["o"]["value"].Value<string>().Contains("Template"))
-                    {
-                        var nodeName = po["o"]["value"].Value<string>().Replace("http://ja.dbpedia.org/resource/", "");
-                        _linkedNodeNames.Add(nodeName);
-                    }
-                }
-            }
-        }
-    }
-
-    public Node[] InstantiateLinkedNodes()
-    {
-        foreach (var nodeName in _linkedNodeNames)
-        {
-            var pos = Random.onUnitSphere;
-            
-            var obj = Instantiate(nodeName, pos, transform.parent);
-            linkedNodes.Add(obj);
-            obj.linkedNodes.Add(this);
-
-            if (5 < linkedNodes.Count)
-                break;
-        }
-
-        return linkedNodes.ToArray();
-    }
+    #endregion
 }

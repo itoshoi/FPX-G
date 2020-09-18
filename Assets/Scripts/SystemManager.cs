@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class SystemManager : MonoBehaviour
+public class SystemManager : SingletonMonoBehaviour<SystemManager>
 {
     [SerializeField] private string theme;
+    [SerializeField] private int hopCount;
+    [SerializeField] private int linkedNodeLimit = 5;
     private GameObject _nodeParent;
-    
-    public static List<Node> AllNodes { get; } = new List<Node>();
+
+    public int HopCount => hopCount;
+    public int LinkedNodeLimit => linkedNodeLimit;
 
     private void Start()
     {
@@ -24,26 +27,30 @@ public class SystemManager : MonoBehaviour
 
     private IEnumerator MakeNodesCoroutine()
     {
-        _nodeParent = new GameObject("Nodes");
-        var node = Node.Instantiate(theme, Vector3.zero, _nodeParent.transform);
+        Time.timeScale = 3;
         
-        AllNodes.Add(node);
+        _nodeParent = new GameObject("Nodes");
+        var node = ResourceNode.Instantiate(theme, Vector3.zero, _nodeParent.transform);
         
         yield return new WaitForSeconds(2);
-        var link1 = node.InstantiateLinkedNodes();
-        
-        AllNodes.AddRange(link1);
-        
-        yield return new WaitForSeconds(3);
-        foreach (var link in link1)
-        {
-            var link2 = link.InstantiateLinkedNodes();
-            AllNodes.AddRange(link2);
-        }
-    }
 
-    private void Update()
-    {
+        var targetNodes = new List<ResourceNode>{node};
+        for (var i = 0; i < hopCount; i++)
+        {
+            var nextNodes = new List<ResourceNode>();
+            foreach (var targetNode in targetNodes)
+            {
+                var newNodes = targetNode.InstantiateLinkedNodes(linkedNodeLimit);
+                nextNodes.AddRange(newNodes);
+            }
+
+            targetNodes = nextNodes;
+            yield return new WaitForSeconds(5);
+        }
+
+        // 配置が整うの待ち
+        yield return new WaitForSeconds(3f);
         
+        Time.timeScale = 1;
     }
 }
