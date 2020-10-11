@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 793afbe18d0c6574bbd7033ec97e7aa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linkedNodeDistance: 2
   titleText: {fileID: 329965308889830469}
 --- !u!1001 &8029149836861282439
 PrefabInstance:
@@ -119,12 +118,32 @@ PrefabInstance:
     - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
         type: 3}
       propertyPath: m_textInfo.lineCount
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
         type: 3}
       propertyPath: m_textInfo.pageCount
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 30.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_firstOverflowCharacterIndex
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659773, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659773, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7780250448962898083, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
         type: 3}

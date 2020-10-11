@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 
 public abstract class Node : MonoBehaviour
@@ -13,7 +14,7 @@ public abstract class Node : MonoBehaviour
         ResourceNode,
         LiteralNode
     }
-    
+
     #region Constant
 
     protected const string BaseUrl = "http://ja.dbpedia.org/";
@@ -27,14 +28,15 @@ public abstract class Node : MonoBehaviour
 
     // クーロン力の定数
     protected const float CoulombConstant = 0.5f;
-    
-    protected readonly Dictionary<(Type type1, Type type2), float> LinkedNodeDistance = new Dictionary<(Type t1, Type t2), float>
-    {
-        {(Type.ResourceNode, Type.ResourceNode), 2},
-        {(Type.ResourceNode, Type.LiteralNode), 0.15f},
-        {(Type.LiteralNode, Type.ResourceNode), 0.15f},
-        {(Type.LiteralNode, Type.LiteralNode), 0.15f},
-    };
+
+    protected readonly Dictionary<(Type type1, Type type2), float> LinkedNodeDistance =
+        new Dictionary<(Type t1, Type t2), float>
+        {
+            {(Type.ResourceNode, Type.ResourceNode), 2},
+            {(Type.ResourceNode, Type.LiteralNode), 0.15f},
+            {(Type.LiteralNode, Type.ResourceNode), 0.15f},
+            {(Type.LiteralNode, Type.LiteralNode), 0.15f},
+        };
 
     #endregion
 
@@ -139,11 +141,36 @@ public abstract class Node : MonoBehaviour
             var distance = vector.magnitude;
             var direction = vector.normalized;
 
-            var force = SpringConstant * (LinkedNodeDistance[(NodeType, linkedNode.Value.NodeType)] - distance) * direction -
+            var force = SpringConstant * (LinkedNodeDistance[(NodeType, linkedNode.Value.NodeType)] - distance) *
+                        direction -
                         SpringDecay * NodeRigidbody.velocity;
             NodeRigidbody.AddForce(force);
         }
     }
 
     #endregion
+
+    private Renderer _renderer;
+
+    public void SetColor(Color color)
+    {
+        if (!_renderer)
+        {
+            _renderer = GetComponent<Renderer>();
+            _sharedMaterial = _renderer.sharedMaterial;
+        }
+
+        _renderer.material.SetColor("_Color", color);
+        _renderer.material.SetColor("_EmissionColor", color * 1.7f);
+    }
+
+    private Material _sharedMaterial;
+
+    public void RestoreSharedMaterial()
+    {
+        if (!_renderer) return;
+        if (!_sharedMaterial) return;
+        if(_renderer.material == _sharedMaterial) return;
+        _renderer.material = _sharedMaterial;
+    }
 }

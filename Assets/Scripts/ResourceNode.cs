@@ -16,7 +16,7 @@ public class ResourceNode : Node
 {
     #region Variable
 
-    private static Dictionary<string, ResourceNode> AllResourceNodes { get; } = new Dictionary<string, ResourceNode>();
+    public static Dictionary<string, ResourceNode> AllResourceNodes { get; } = new Dictionary<string, ResourceNode>();
 
     [SerializeField] private TextMeshPro titleText;
 
