@@ -9,7 +9,8 @@ public class SystemManager : SingletonMonoBehaviour<SystemManager>
     [SerializeField] private string theme;
     [SerializeField] private int hopCount;
     [SerializeField] private int linkedNodeLimit = 5;
-    private GameObject _nodeParent;
+
+    public static GameObject NodeParent { get; private set; }
 
     public int HopCount => hopCount;
     public int LinkedNodeLimit => linkedNodeLimit;
@@ -29,8 +30,8 @@ public class SystemManager : SingletonMonoBehaviour<SystemManager>
     {
         Time.timeScale = 3;
         
-        _nodeParent = new GameObject("Nodes");
-        var node = ResourceNode.Instantiate(theme, Vector3.zero, _nodeParent.transform);
+        NodeParent = new GameObject("Nodes");
+        var node = ResourceNode.Instantiate(theme, Vector3.zero, NodeParent.transform);
         
         yield return new WaitForSeconds(2);
 

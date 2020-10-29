@@ -73,7 +73,8 @@ public class ResourceNode : Node
         var abstKey = Label + " Abstract";
         if (!linkedNodes.ContainsKey(abstKey))
         {
-            var pos = transform.position + Random.onUnitSphere * LinkedNodeDistance[(NodeType, Type.LiteralNode)];
+            // var pos = transform.position + Random.onUnitSphere * LinkedNodeDistance[(NodeType, Type.LiteralNode)];
+            var pos = transform.TransformPoint(Vector3.right * LinkedNodeDistance[(NodeType, Type.LiteralNode)]);
             var obj = LiteralNode.Instantiate(Abstract, pos, transform.parent);
             madeNodes.Add(obj);
             linkedNodes.Add(abstKey, obj);

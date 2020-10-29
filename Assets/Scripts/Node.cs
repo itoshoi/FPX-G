@@ -27,15 +27,15 @@ public abstract class Node : MonoBehaviour
     protected const float SpringDecay = 3;
 
     // クーロン力の定数
-    protected const float CoulombConstant = 0.5f;
+    protected const float CoulombConstant = 0.3f;
 
-    protected readonly Dictionary<(Type type1, Type type2), float> LinkedNodeDistance =
+    protected Dictionary<(Type type1, Type type2), float> LinkedNodeDistance =>
         new Dictionary<(Type t1, Type t2), float>
         {
-            {(Type.ResourceNode, Type.ResourceNode), 2},
-            {(Type.ResourceNode, Type.LiteralNode), 0.15f},
-            {(Type.LiteralNode, Type.ResourceNode), 0.15f},
-            {(Type.LiteralNode, Type.LiteralNode), 0.15f},
+            {(Type.ResourceNode, Type.ResourceNode), 2 * SystemManager.NodeParent.transform.lossyScale.x},
+            {(Type.ResourceNode, Type.LiteralNode), 0.15f * SystemManager.NodeParent.transform.lossyScale.x},
+            {(Type.LiteralNode, Type.ResourceNode), 0.15f * SystemManager.NodeParent.transform.lossyScale.x},
+            {(Type.LiteralNode, Type.LiteralNode), 0.05f * SystemManager.NodeParent.transform.lossyScale.x},
         };
 
     #endregion
@@ -141,9 +141,12 @@ public abstract class Node : MonoBehaviour
             var distance = vector.magnitude;
             var direction = vector.normalized;
 
-            var force = SpringConstant * (LinkedNodeDistance[(NodeType, linkedNode.Value.NodeType)] - distance) *
-                        direction -
-                        SpringDecay * NodeRigidbody.velocity;
+            var force = SpringConstant // ばね定数
+                        * (LinkedNodeDistance[(NodeType, linkedNode.Value.NodeType)] // 目標距離
+                           - distance) // 現在の距離との差分を出す
+                        * direction // ベクトルに変換
+                        - SpringDecay * NodeRigidbody.velocity; // 減衰を適用
+
             NodeRigidbody.AddForce(force);
         }
     }
@@ -151,6 +154,9 @@ public abstract class Node : MonoBehaviour
     #endregion
 
     private Renderer _renderer;
+
+    private static readonly int Color = Shader.PropertyToID("_Color");
+    private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
     public void SetColor(Color color)
     {
@@ -160,8 +166,8 @@ public abstract class Node : MonoBehaviour
             _sharedMaterial = _renderer.sharedMaterial;
         }
 
-        _renderer.material.SetColor("_Color", color);
-        _renderer.material.SetColor("_EmissionColor", color * 1.7f);
+        _renderer.material.SetColor(Color, color);
+        _renderer.material.SetColor(EmissionColor, color);
     }
 
     private Material _sharedMaterial;
@@ -170,7 +176,7 @@ public abstract class Node : MonoBehaviour
     {
         if (!_renderer) return;
         if (!_sharedMaterial) return;
-        if(_renderer.material == _sharedMaterial) return;
+        if (_renderer.material == _sharedMaterial) return;
         _renderer.material = _sharedMaterial;
     }
 }

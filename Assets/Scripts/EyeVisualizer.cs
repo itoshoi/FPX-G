@@ -5,17 +5,23 @@ using UnityEngine;
 
 public class EyeVisualizer : MonoBehaviour
 {
+    [SerializeField, ColorUsage(true, true)] private Color defaultNodeColor;
+
+    [SerializeField, ColorUsage(true, true)]
+    private Color lookingNodeColor;
+    
     private void Update()
     {
         foreach (var node in ResourceNode.AllResourceNodes)
         {
-            node.Value.RestoreSharedMaterial();
+            // node.Value.RestoreSharedMaterial();
+            node.Value.SetColor(defaultNodeColor);
         }
         
         var lookingNode = MyUtility.GetLookingNode(out var hit);
         if (lookingNode)
         {
-            lookingNode.SetColor(Color.cyan);
+            lookingNode.SetColor(lookingNodeColor);
         }
     }
 }

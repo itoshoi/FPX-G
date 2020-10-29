@@ -86,7 +86,7 @@ public class CameraController : MonoBehaviour
         {
             // 最終的なノードとの距離
             const float distance = 0.5f;
-            var targetPos = hit.transform.position - _camera.transform.forward * distance;
+            var targetPos = node.transform.position - _camera.transform.forward * distance;
             // 高さはノードの高さに合わせる
             targetPos.y = node.transform.position.y;
             MoveTowards(targetPos, autoMode, speed);
