@@ -9,6 +9,9 @@ public class SimRecord
 	}
 
 	public DataSet dataSet;
+	// all node count
+	public float nodeCount;
+	// graph density
 	public float graphDensity;
 	// exp distribution lambda
 	public float lambda;

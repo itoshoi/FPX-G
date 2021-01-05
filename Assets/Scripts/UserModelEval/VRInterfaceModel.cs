@@ -42,7 +42,7 @@ public class VRInterfaceModel : MonoBehaviour
     private const int MaxSelectHop = 3;
 
     // distanceFtoG between first node and goal node
-    public int distanceFtoG = 3;
+    public float distanceFtoG = 3;
 
 	// select goal magnification
 	// 選択したホップ内に, 目的ノードが存在する場合に目的ノードを選択する確率に対する係数
@@ -51,7 +51,7 @@ public class VRInterfaceModel : MonoBehaviour
 
     private SimNode _currentNode;
     private SimNode _firstNode;
-	private SimNode _goalNode;
+	private List<SimNode> _goalNodes;
     private float _graphDensity;
 
     // operation count
@@ -108,6 +108,8 @@ public class VRInterfaceModel : MonoBehaviour
         // when tree
         // var allNodes = MakeTreeNodes();
         // var firstNode = allNodes[0];
+		
+		_goalNodes = new List<SimNode>();
 
         SimNode[] allNodes = new SimNode[0];
         switch (dataSet)
@@ -125,58 +127,58 @@ public class VRInterfaceModel : MonoBehaviour
         // when watts strogatz graph 
 
         SimNode firstNode = allNodes[0];
-        SimNode goalNode = allNodes[0];
+        // SimNode goalNode = allNodes[0];
         // var firstNode = allNodes[Random.Range(0, allNodes.Length)];
         // var goalNode = allNodes[Random.Range(0, allNodes.Length)];
 
         // set firstNode
-        while (firstNode == goalNode)
-        {
-			var goalList = new SimNode[0];
+        // while (firstNode == goalNode)
+        // {
+			// var goalList = new SimNode[0];
 			// GoalNodeが手に入らない場合があるので、ちゃんと定まるまでループ
-            while (goalList.Length == 0)
-            {
-                switch (dataSet)
-                {
-                    case SimRecord.DataSet.WattsStrogatz:
-                        firstNode = allNodes[Random.Range(0, allNodes.Length)];
-                        break;
-                    case SimRecord.DataSet.Tree:
-                        firstNode = allNodes[0];
-                        break;
-                    case SimRecord.DataSet.BarabasiAlbert:
-                        firstNode = allNodes[Random.Range(0, allNodes.Length)];
-                        break;
-                }
-                // goalNode = allNodes[Random.Range(0, allNodes.Length)];
+            // while (goalList.Length == 0)
+            // {
+		switch (dataSet)
+		{
+			case SimRecord.DataSet.WattsStrogatz:
+				firstNode = allNodes[Random.Range(0, allNodes.Length)];
+				break;
+			case SimRecord.DataSet.Tree:
+				firstNode = allNodes[0];
+				break;
+			case SimRecord.DataSet.BarabasiAlbert:
+				firstNode = allNodes[Random.Range(0, allNodes.Length)];
+				break;
+		}
+				// goalNode = allNodes[Random.Range(0, allNodes.Length)];
 
-                goalList = firstNode.GetLinkedNodes(distanceFtoG, false);
-				if(goalList.Length == 0)
-					Debug.Log("retry because goal not found.");
-            }
+				// goalList = firstNode.GetLinkedNodes(distanceFtoG, false);
+				// goalList = allNodes;
+				// if(goalList.Length == 0)
+				// 	Debug.Log("retry because goal not found.");
+            // }
 
-            goalNode = goalList[Random.Range(0, goalList.Length)];
-        }
+		const int goalCount = 5;
+		for(int i=0; i<goalCount; i++){
+			var goalNode = allNodes[Random.Range(0, allNodes.Length)];
+			goalNode.IsGoal = true;
+			_goalNodes.Add(goalNode);
+		}
 
-        goalNode.IsGoal = true;
+        // }
 
+		// for dist goal
+        // goalNode.IsGoal = true;
+		// _goalNodes.Add(goalNode);
+		
         _currentNode = firstNode;
         _currentNode.Known = true;
         _opCount = 0;
         _firstNode = firstNode;
-		_goalNode = goalNode;
         _graphDensity = GraphDensity(allNodes);
 
         // 視点ノードと終点ノードとの距離を記録
-        // for(int i=1; i<6; i++){
-        // 	if(firstNode.GetLinkedNodes(i, false).Contains(goalNode)){
-        // 		distanceFtoG = i;
-        // 		break;
-        // 	}else if(i == 5){
-        // 		distanceFtoG = -1;
-        // 	}
-        // }
-
+		distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
 
         return firstNode;
     }
@@ -379,10 +381,12 @@ public class VRInterfaceModel : MonoBehaviour
                 var unknownNodes = _currentNode.GetLinkedNodes(selectHop, false).ToList();
                 if (unknownNodes.Count == 0)
                     continue;
-				if (unknownNodes.Contains(_goalNode)){
-					// goal node を選択する確率を上げる
-					for(int i = 0; i < goalPriority - 1; i++)
-						unknownNodes.Add(_goalNode);
+				foreach(var goalNode in _goalNodes){
+					if (unknownNodes.Contains(goalNode)){
+						// goal node を選択する確率を上げる
+						for(int i = 0; i < goalPriority - 1; i++)
+							unknownNodes.Add(goalNode);
+					}
 				}
                 var r2 = Random.Range(0, unknownNodes.Count);
                 _currentNode = unknownNodes[r2];
@@ -407,6 +411,7 @@ public class VRInterfaceModel : MonoBehaviour
         var record = new SimRecord
         {
             dataSet = dataSet,
+			nodeCount = allNodeCount,
             graphDensity = _graphDensity,
             lambda = Lambda,
             distance = distanceFtoG,
@@ -487,4 +492,21 @@ public class VRInterfaceModel : MonoBehaviour
         var graphEdges = nodes.Sum(n => n.linkedNodes.Count) / 2f;
         return graphEdges / possibleEdges;
     }
+
+	private int Distance(SimNode node1, SimNode node2){
+		if(node1 == node2)
+			return 0;
+	
+		var dist = 0;
+        for(int i=1; i<6; i++){
+        	if(node1.GetLinkedNodes(i, false).Contains(node2)){
+				dist = i;
+        		break;
+        	}else if(i == 5){
+				dist = -1;
+        	}
+        }
+
+		return dist;
+	}
 }
