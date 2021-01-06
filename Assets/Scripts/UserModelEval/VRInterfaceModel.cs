@@ -57,6 +57,9 @@ public class VRInterfaceModel : MonoBehaviour
     // operation count
     private int _opCount = 0;
 
+	// system rand instance
+	private System.Random rand = new System.Random();
+
     class SimNode
     {
         public int nodeId = 0;
@@ -139,7 +142,6 @@ public class VRInterfaceModel : MonoBehaviour
             // while (goalList.Length == 0)
             // {
 		
-		var rand = new System.Random();
 		switch (dataSet)
 		{
 			case SimRecord.DataSet.WattsStrogatz:
@@ -252,7 +254,6 @@ public class VRInterfaceModel : MonoBehaviour
         {
             for (int j = 0; j < allNodes.Length; j++)
             {
-				var rand = new System.Random();
                 // j <-> j + iのリンクに関して, 再結線する
                 if (rand.NextDouble() < rewiringP)
                 {
@@ -367,8 +368,7 @@ public class VRInterfaceModel : MonoBehaviour
 
         while (!_currentNode.IsGoal)
         {
-			var rand = new System.Random();
-            if (rand.NextDouble() < pReturnFirst && _currentNode != _firstNode)
+            if ((float) rand.NextDouble() < pReturnFirst && _currentNode != _firstNode)
             {
                 _currentNode = _firstNode;
 				_opCount++;
@@ -449,7 +449,7 @@ public class VRInterfaceModel : MonoBehaviour
 
     private float ExpDist(float lamda)
     {
-        var r = (float) new System.Random().NextFloat();
+        var r = (float) rand.NextDouble();
         var x = -Mathf.Log(1 - r) / lamda;
         return x;
     }
@@ -464,7 +464,7 @@ public class VRInterfaceModel : MonoBehaviour
     private int SelectByProbDist(float[] dist)
     {
         // var r = Random.Range(0f, 1f);
-		var r = (float) new System.Random().NextDouble();
+		var r = rand.NextDouble();
         var sum = 0f;
         for (int i = 0; i < dist.Length; i++)
         {
