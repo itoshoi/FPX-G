@@ -138,16 +138,18 @@ public class VRInterfaceModel : MonoBehaviour
 			// GoalNodeが手に入らない場合があるので、ちゃんと定まるまでループ
             // while (goalList.Length == 0)
             // {
+		
+		var rand = new System.Random();
 		switch (dataSet)
 		{
 			case SimRecord.DataSet.WattsStrogatz:
-				firstNode = allNodes[Random.Range(0, allNodes.Length)];
+				firstNode = allNodes[rand.Next(0, allNodes.Length)];
 				break;
 			case SimRecord.DataSet.Tree:
 				firstNode = allNodes[0];
 				break;
 			case SimRecord.DataSet.BarabasiAlbert:
-				firstNode = allNodes[Random.Range(0, allNodes.Length)];
+				firstNode = allNodes[rand.Next(0, allNodes.Length)];
 				break;
 		}
 				// goalNode = allNodes[Random.Range(0, allNodes.Length)];
@@ -158,9 +160,9 @@ public class VRInterfaceModel : MonoBehaviour
 				// 	Debug.Log("retry because goal not found.");
             // }
 
-		const int goalCount = 5;
+		const int goalCount = 1;
 		for(int i=0; i<goalCount; i++){
-			var goalNode = allNodes[Random.Range(0, allNodes.Length)];
+			var goalNode = allNodes[rand.Next(0, allNodes.Length)];
 			goalNode.IsGoal = true;
 			_goalNodes.Add(goalNode);
 		}
@@ -178,7 +180,7 @@ public class VRInterfaceModel : MonoBehaviour
         _graphDensity = GraphDensity(allNodes);
 
         // 視点ノードと終点ノードとの距離を記録
-		distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
+		// distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
 
         return firstNode;
     }
@@ -250,8 +252,9 @@ public class VRInterfaceModel : MonoBehaviour
         {
             for (int j = 0; j < allNodes.Length; j++)
             {
+				var rand = new System.Random();
                 // j <-> j + iのリンクに関して, 再結線する
-                if (Random.Range(0f, 1f) < rewiringP)
+                if (rand.NextDouble() < rewiringP)
                 {
                     // 現在注目しているノード
                     var targetNode = allNodes[j];
@@ -259,11 +262,11 @@ public class VRInterfaceModel : MonoBehaviour
                     var oldLinkNodeIndex = j + i < allNodes.Length ? j + i : j + i - allNodes.Length;
                     var oldLinkNode = allNodes[oldLinkNodeIndex];
                     // 新しく接続するノード
-                    var newLinkNode = allNodes[Random.Range(0, allNodes.Length)];
+                    var newLinkNode = allNodes[rand.Next(0, allNodes.Length)];
                     // 自己ループと重複ループを避ける
                     while (targetNode == newLinkNode || targetNode.linkedNodes.Contains(newLinkNode))
                     {
-                        newLinkNode = allNodes[Random.Range(0, allNodes.Length)];
+                        newLinkNode = allNodes[rand.Next(0, allNodes.Length)];
                         // すでに自分以外の全ノードにエッジがあればスキップ
                         if (targetNode.linkedNodes.Count >= nodeCount - 1)
                             break;
@@ -364,15 +367,15 @@ public class VRInterfaceModel : MonoBehaviour
 
         while (!_currentNode.IsGoal)
         {
-            _opCount++;
-
-            if (Random.Range(0f, 1f) < pReturnFirst && _currentNode != _firstNode)
+			var rand = new System.Random();
+            if (rand.NextDouble() < pReturnFirst && _currentNode != _firstNode)
             {
                 _currentNode = _firstNode;
+				_opCount++;
                 continue;
             }
 
-            var r1 = Random.Range(0f, 1f);
+            var r1 = rand.NextDouble();
             // 未知ノードに移動
             if (r1 < pSelectUnknown)
             {
@@ -388,9 +391,10 @@ public class VRInterfaceModel : MonoBehaviour
 							unknownNodes.Add(goalNode);
 					}
 				}
-                var r2 = Random.Range(0, unknownNodes.Count);
+                var r2 = rand.Next(0, unknownNodes.Count);
                 _currentNode = unknownNodes[r2];
                 _currentNode.Known = true;
+				_opCount++;
             }
             // 既知ノードに移動
             else
@@ -401,9 +405,10 @@ public class VRInterfaceModel : MonoBehaviour
                 var knownNodes = _currentNode.GetLinkedNodes(selectHop, true);
                 if (knownNodes.Length == 0)
                     continue;
-                var r2 = Random.Range(0, knownNodes.Length);
+                var r2 = rand.Next(0, knownNodes.Length);
                 _currentNode = knownNodes[r2];
                 _currentNode.Known = true;
+				_opCount++;
             }
         }
 
@@ -444,7 +449,7 @@ public class VRInterfaceModel : MonoBehaviour
 
     private float ExpDist(float lamda)
     {
-        var r = Random.Range(0f, 1f);
+        var r = (float) new System.Random().NextFloat();
         var x = -Mathf.Log(1 - r) / lamda;
         return x;
     }
@@ -458,7 +463,8 @@ public class VRInterfaceModel : MonoBehaviour
 
     private int SelectByProbDist(float[] dist)
     {
-        var r = Random.Range(0f, 1f);
+        // var r = Random.Range(0f, 1f);
+		var r = (float) new System.Random().NextDouble();
         var sum = 0f;
         for (int i = 0; i < dist.Length; i++)
         {
