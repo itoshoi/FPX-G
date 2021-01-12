@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 using UnityEngine.SceneManagement;
 
 public class VRInterfaceModel : MonoBehaviour
@@ -41,13 +42,13 @@ public class VRInterfaceModel : MonoBehaviour
     public float pReturnFirst = 0f;
     private const int MaxSelectHop = 3;
 
+	// 視界に目的ノードが入った場合に選択する確率
+	public float pSelectVisibleGoal = 0.5f;
+	// 視界に入り認識できるノードの最大数
+	const int MaxVisibleCount = 20;
+
     // distanceFtoG between first node and goal node
     public float distanceFtoG = 3;
-
-	// select goal magnification
-	// 選択したホップ内に, 目的ノードが存在する場合に目的ノードを選択する確率に対する係数
-	// ex, goalPriority = 5の時、5倍選択確率があがる
-	public int goalPriority = 5;
 
     private SimNode _currentNode;
     private SimNode _firstNode;
@@ -104,6 +105,35 @@ public class VRInterfaceModel : MonoBehaviour
 
             return result.ToArray();
         }
+
+		// hop先までの全接続ノードを取得する
+		// result[0]はこのノード
+		// result[1]は1ホップ先のノード配列(SimNode[])
+		public List<SimNode>[] GetAllLinkedNodes(int hop){
+            var lastNodes = new List<SimNode> { this };
+            // 既に探索済みのノードにはアクセスしないようにするため
+            var accessedNodes = new List<SimNode> { this };
+			var result = new List<SimNode>[hop+1];
+			result[0] = new List<SimNode>{ this };
+
+            for (var i = 1; i < hop + 1; i++)
+            {
+                var lastNodesTmp = new List<SimNode>();
+                foreach (var node in lastNodes)
+                {
+					foreach(var linkNode in node.linkedNodes){
+						if(!accessedNodes.Contains(linkNode)){
+							lastNodesTmp.Add(linkNode);
+							accessedNodes.Add(linkNode);
+						}
+					}
+                }
+                lastNodes = lastNodesTmp;
+				result[i] = lastNodes;
+            }
+
+			return result;
+		}
     }
 
     private SimNode InitNodes()
@@ -182,7 +212,7 @@ public class VRInterfaceModel : MonoBehaviour
         _graphDensity = GraphDensity(allNodes);
 
         // 視点ノードと終点ノードとの距離を記録
-		// distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
+		distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
 
         return firstNode;
     }
@@ -368,12 +398,65 @@ public class VRInterfaceModel : MonoBehaviour
 
         while (!_currentNode.IsGoal)
         {
+
+
+			// 選択可能な全ノード
+			var selectableNodes = _currentNode.GetAllLinkedNodes(MaxSelectHop);
+
+			// ユーザーの視界を再現した, 見える範囲のノード
+			var visibleNodes = new List<SimNode>();
+			for(int i = 0; i < MaxVisibleCount; i++){
+				var selectHop = SelectHopByExpDist();
+
+				try{
+					// みたいしたいノードが0個になったら, 手前のノードで代替する
+					while(0 < selectHop && selectableNodes[selectHop].Count == 0){
+						selectHop--;
+						continue;
+					}
+				} catch(IndexOutOfRangeException){
+					Debug.Log("out of range");
+					Debug.Log("SelectHop:" + selectHop);
+					Debug.Log("length:" + selectableNodes.Length);
+				}
+
+				if(selectHop == 0){
+					break;
+				}
+
+				var r = rand.Next(0, selectableNodes[selectHop].Count);
+				visibleNodes.Add(selectableNodes[selectHop][r]);
+				selectableNodes[selectHop].RemoveAt(r);
+
+				var selectableNodesCount = selectableNodes.Sum(ns => ns.Count);
+				if(selectableNodesCount == 1){
+					break;
+				}
+			}
+
+			// 目的ノードが視界に入っていたら高確率で選択
+			foreach(var goalNode in _goalNodes){
+				if(visibleNodes.Contains(goalNode)){
+					var r = rand.NextDouble();
+					if(r < pSelectVisibleGoal){
+						_currentNode = goalNode;
+						_currentNode.Known = true;
+						_opCount++;
+						break;
+					}
+				}
+			}
+
+			// 一定確率で始点ノードに戻る
             if ((float) rand.NextDouble() < pReturnFirst && _currentNode != _firstNode)
             {
                 _currentNode = _firstNode;
 				_opCount++;
                 continue;
-            }
+			}
+
+			if(_currentNode.IsGoal)
+				continue;
 
             var r1 = rand.NextDouble();
             // 未知ノードに移動
@@ -384,13 +467,13 @@ public class VRInterfaceModel : MonoBehaviour
                 var unknownNodes = _currentNode.GetLinkedNodes(selectHop, false).ToList();
                 if (unknownNodes.Count == 0)
                     continue;
-				foreach(var goalNode in _goalNodes){
-					if (unknownNodes.Contains(goalNode)){
-						// goal node を選択する確率を上げる
-						for(int i = 0; i < goalPriority - 1; i++)
-							unknownNodes.Add(goalNode);
-					}
-				}
+				// foreach(var goalNode in _goalNodes){
+				// 	if (unknownNodes.Contains(goalNode)){
+				// 		// goal node を選択する確率を上げる
+				// 		for(int i = 0; i < goalPriority - 1; i++)
+				// 			unknownNodes.Add(goalNode);
+				// 	}
+				// }
                 var r2 = rand.Next(0, unknownNodes.Count);
                 _currentNode = unknownNodes[r2];
                 _currentNode.Known = true;
@@ -420,10 +503,10 @@ public class VRInterfaceModel : MonoBehaviour
             graphDensity = _graphDensity,
             lambda = Lambda,
             distance = distanceFtoG,
-			goalPriority = goalPriority,
             opCount = _opCount,
             pSelectUnknown = pSelectUnknown,
             pReturnFirst = pReturnFirst,
+			pSelectVisibleGoal = pSelectVisibleGoal
         };
 
         records.Add(record);
@@ -432,7 +515,7 @@ public class VRInterfaceModel : MonoBehaviour
     private int SelectHopByProbArray(float[] prob)
     {
         int selectIndex = 0;
-        var r = Random.Range(0f, 1f);
+		var r = rand.NextDouble();
         float pSum = 0;
         for (int i = 0; i < prob.Length; i++)
         {
@@ -449,8 +532,18 @@ public class VRInterfaceModel : MonoBehaviour
 
     private float ExpDist(float lamda)
     {
-        var r = (float) rand.NextDouble();
-        var x = -Mathf.Log(1 - r) / lamda;
+		float x = float.PositiveInfinity;
+		int tryc = 0;
+		// floatにすることでr=1になり, xがinfinityになることがあるのでそれを回避する
+		while(x == float.PositiveInfinity){
+			var r = (float) rand.NextDouble();
+			x = -Mathf.Log(1 - r) / lamda;
+			tryc++;
+			if(100 < tryc){
+				Debug.Log("value is invalid");
+				break;
+			}
+		}
         return x;
     }
 

@@ -12,17 +12,40 @@ public class SimulationManager : MonoBehaviour
 	[SerializeField] private SimRecord.DataSet dataSet;
 	[SerializeField] private int allNodeCount = 200;
 	[SerializeField] private int meanDegree = 6;
-	[SerializeField] private int distanceFtoG = 3;
-	[SerializeField] private int goalPriority = 5;
+	// [SerializeField] private int distanceFtoG = 3;
+	[SerializeField] private float selectVisibleGoal = 0.5f;
 
     [SerializeField] private int maxEpoc = 1000;
 
-	private void Start()
+	private async Task Start()
     {
-		StartSimulation();
+		// await StartSimulation();
+		await SimulateAll();
 		// StartCoroutine(StartSimulationCoroutine());
 		// StartCoroutine(SimulationCoroutine(0.1f, 0));
     }
+
+	private async Task SimulateAll(){
+		// BarabasiAlbertのm2~m6までをシミュレート
+		for(int m = 2; m <= 6; m++){
+			Debug.Log("m = " + m);
+			dataSet = SimRecord.DataSet.BarabasiAlbert;
+			meanDegree = m * 2;
+			await StartSimulation();
+		}
+
+		// WattsStrogatzのk4 ~ k12までをシミュレート
+		for(int k = 4; k <= 12; k += 2){
+			Debug.Log("k = " + k);
+			dataSet = SimRecord.DataSet.WattsStrogatz;
+			meanDegree = k;
+			await StartSimulation();
+		}
+
+		// Treeをシミュレート
+		dataSet = SimRecord.DataSet.Tree;
+		await StartSimulation();
+	}
 
 	private IEnumerator StartSimulationCoroutine(){
         Debug.Log("Start Simulation");
@@ -38,7 +61,7 @@ public class SimulationManager : MonoBehaviour
 		yield break;
 	}
 
-	private async void StartSimulation(){
+	private async Task StartSimulation(){
         Debug.Log("Start Simulation");
 
 		var tasks = new List<Task>();
@@ -51,7 +74,7 @@ public class SimulationManager : MonoBehaviour
         }
 
 		// wiki data
-		// tasks.Add(Task.Run(() => {Simulate(10, 0.1f);}));
+		tasks.Add(Task.Run(() => {Simulate(10, 0.1f);}));
 
 		await Task.WhenAll(tasks);
         Debug.Log("All Done.");
@@ -65,8 +88,8 @@ public class SimulationManager : MonoBehaviour
         userModel.dataSet = dataSet;
 		userModel.allNodeCount = allNodeCount;
 		userModel.meanDegree = meanDegree;
-		userModel.distanceFtoG = distanceFtoG;
-		userModel.goalPriority = goalPriority;
+		// userModel.distanceFtoG = distanceFtoG;
+		userModel.pSelectVisibleGoal = selectVisibleGoal;
 		// 始点ノードに戻る確率
 		userModel.pReturnFirst = pReturnFirst;
         for (int i = 0; i < maxEpoc; i++)
@@ -76,7 +99,7 @@ public class SimulationManager : MonoBehaviour
 			Thread.Sleep(16);
         }
 
-        SimDataWriter.WriteData(userModel.Records, dataSet, "lambda_" + lambda.ToString("F1").Replace(".", "_") + ".csv");
+        SimDataWriter.WriteData(userModel.Records, dataSet, "lambda_" + lambda.ToString("F1").Replace(".", "_") + ".csv", userModel);
         Debug.Log(lambda + " Done.");
 	}
 
@@ -89,8 +112,7 @@ public class SimulationManager : MonoBehaviour
         userModel.dataSet = dataSet;
 		userModel.allNodeCount = allNodeCount;
 		userModel.meanDegree = meanDegree;
-		userModel.distanceFtoG = distanceFtoG;
-		userModel.goalPriority = goalPriority;
+		// userModel.distanceFtoG = distanceFtoG;
 		// 始点ノードに戻る確率
 		userModel.pReturnFirst = pReturnFirst;
         for (int i = 0; i < maxEpoc; i++)
@@ -101,7 +123,7 @@ public class SimulationManager : MonoBehaviour
             yield return null;
         }
 
-        SimDataWriter.WriteData(userModel.Records, dataSet, "lambda_" + lambda.ToString("F1").Replace(".", "_") + ".csv");
+        SimDataWriter.WriteData(userModel.Records, dataSet, "lambda_" + lambda.ToString("F1").Replace(".", "_") + ".csv", userModel);
         Debug.Log(lambda + " Done.");
         yield break;
     }

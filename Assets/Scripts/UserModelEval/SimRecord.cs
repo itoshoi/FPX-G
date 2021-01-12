@@ -17,12 +17,12 @@ public class SimRecord
 	public float lambda;
 	// hop count between first node and goal node
 	public float distance;
-	// buff of selecting goal probability
-	public int goalPriority;
 	// operation count
 	public float opCount;
 	// probability of select unknown node
 	public float pSelectUnknown;
 	// probability of return to first node
 	public float pReturnFirst;
+	// probability of select goal when visible
+	public float pSelectVisibleGoal;
 }

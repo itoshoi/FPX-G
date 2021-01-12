@@ -8,13 +8,27 @@ using System.Text;
 
 public class SimDataWriter : MonoBehaviour
 {
-    public static void WriteData(SimRecord[] simRecords, SimRecord.DataSet dataSet, string fileName)
+	// graphModelParams[0] is nodeCount
+	// graphModelParams[1] is meanDegree
+    public static void WriteData(SimRecord[] simRecords, SimRecord.DataSet dataSet, string fileName, VRInterfaceModel model)
     {
-        var fileDir = Application.dataPath + "/Data/Simulation/" + dataSet.ToString();
+        // var fileDir = Application.dataPath + "/Data/Simulation/" + dataSet.ToString();
+        var fileDir = "/media/GDrive/ToyamaLab/VRInterface/Assets" + "/Data/Simulation/SelectVisibleGoal" + (model.pSelectVisibleGoal * 100) + "/" + dataSet.ToString();
+		switch(dataSet){
+			case SimRecord.DataSet.BarabasiAlbert:
+				fileDir += "_m" + (model.meanDegree / 2).ToString("F0");
+				fileDir += "_n" + (model.allNodeCount).ToString("F0");
+				break;
+			case SimRecord.DataSet.WattsStrogatz:
+				fileDir += "_k" + (model.meanDegree).ToString("F0");
+				fileDir += "_n" + (model.allNodeCount).ToString("F0");
+				break;
+		}
+
         Directory.CreateDirectory(fileDir);
         var filePath = fileDir + "/" + fileName;
         StreamWriter sw = new StreamWriter(filePath, false, Encoding.GetEncoding("Shift_JIS"));
-        sw.WriteLine("DataSet,NodeCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,GoalPriority,OperationCount");
+        sw.WriteLine("DataSet,NodeCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,ProbSelectVisibleGoal,OperationCount");
         foreach (var record in simRecords)
         {
             var str = record.dataSet.ToString();
@@ -24,7 +38,7 @@ public class SimDataWriter : MonoBehaviour
             str += "," + record.distance;
             str += "," + record.pSelectUnknown;
             str += "," + record.pReturnFirst;
-            str += "," + record.goalPriority;
+            str += "," + record.pSelectVisibleGoal;
             str += "," + record.opCount;
             sw.WriteLine(str);
         }
