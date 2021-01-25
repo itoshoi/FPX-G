@@ -11,6 +11,8 @@ public class SimRecord
 	public DataSet dataSet;
 	// all node count
 	public float nodeCount;
+	// goal cound
+	public int goalCount;
 	// graph density
 	public float graphDensity;
 	// exp distribution lambda

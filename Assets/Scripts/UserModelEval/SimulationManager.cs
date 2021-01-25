@@ -11,6 +11,7 @@ public class SimulationManager : MonoBehaviour
 	[SerializeField] private float endLambda = 2f;
 	[SerializeField] private SimRecord.DataSet dataSet;
 	[SerializeField] private int allNodeCount = 200;
+	[SerializeField] private int goalNodeCount = 1;
 	[SerializeField] private int meanDegree = 6;
 	// [SerializeField] private int distanceFtoG = 3;
 	[SerializeField] private float selectVisibleGoal = 0.5f;
@@ -23,16 +24,21 @@ public class SimulationManager : MonoBehaviour
 		await SimulateAll();
 		// StartCoroutine(StartSimulationCoroutine());
 		// StartCoroutine(SimulationCoroutine(0.1f, 0));
+		Debug.Log("Simulation End");
     }
 
 	private async Task SimulateAll(){
+		var tasks = new List<Task>();
 		// BarabasiAlbertのm2~m6までをシミュレート
 		for(int m = 2; m <= 6; m++){
 			Debug.Log("m = " + m);
 			dataSet = SimRecord.DataSet.BarabasiAlbert;
 			meanDegree = m * 2;
 			await StartSimulation();
+			// tasks.Add(StartSimulation());
 		}
+		// await Task.WhenAll(tasks);
+		// tasks.Clear();
 
 		// WattsStrogatzのk4 ~ k12までをシミュレート
 		for(int k = 4; k <= 12; k += 2){
@@ -40,11 +46,16 @@ public class SimulationManager : MonoBehaviour
 			dataSet = SimRecord.DataSet.WattsStrogatz;
 			meanDegree = k;
 			await StartSimulation();
+			// tasks.Add(StartSimulation());
 		}
+		// await Task.WhenAll(tasks);
+		// tasks.Clear();
 
 		// Treeをシミュレート
 		dataSet = SimRecord.DataSet.Tree;
 		await StartSimulation();
+		// tasks.Add(StartSimulation());
+		// await Task.WhenAll(tasks);
 	}
 
 	private IEnumerator StartSimulationCoroutine(){
@@ -65,7 +76,7 @@ public class SimulationManager : MonoBehaviour
         Debug.Log("Start Simulation");
 
 		var tasks = new List<Task>();
-        for (float l = startLambda; l < endLambda; l += 0.1f)
+        for (float l = startLambda; l < endLambda; l += 0.2f)
         {
 			var task_l = l;
 			var task = Task.Run(() => {Simulate(task_l, 0);});
@@ -87,6 +98,7 @@ public class SimulationManager : MonoBehaviour
         userModel.Lambda = lambda;
         userModel.dataSet = dataSet;
 		userModel.allNodeCount = allNodeCount;
+		userModel.goalCount = goalNodeCount;
 		userModel.meanDegree = meanDegree;
 		// userModel.distanceFtoG = distanceFtoG;
 		userModel.pSelectVisibleGoal = selectVisibleGoal;
@@ -111,6 +123,7 @@ public class SimulationManager : MonoBehaviour
         userModel.Lambda = lambda;
         userModel.dataSet = dataSet;
 		userModel.allNodeCount = allNodeCount;
+		userModel.goalCount = goalNodeCount;
 		userModel.meanDegree = meanDegree;
 		// userModel.distanceFtoG = distanceFtoG;
 		// 始点ノードに戻る確率

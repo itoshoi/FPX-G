@@ -28,11 +28,12 @@ public class SimDataWriter : MonoBehaviour
         Directory.CreateDirectory(fileDir);
         var filePath = fileDir + "/" + fileName;
         StreamWriter sw = new StreamWriter(filePath, false, Encoding.GetEncoding("Shift_JIS"));
-        sw.WriteLine("DataSet,NodeCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,ProbSelectVisibleGoal,OperationCount");
+        sw.WriteLine("DataSet,NodeCount,GoalCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,ProbSelectVisibleGoal,OperationCount");
         foreach (var record in simRecords)
         {
             var str = record.dataSet.ToString();
             str += "," + record.nodeCount;
+            str += "," + record.goalCount;
             str += "," + record.graphDensity.ToString("F5");
             str += "," + record.lambda.ToString("F1");
             str += "," + record.distance;
