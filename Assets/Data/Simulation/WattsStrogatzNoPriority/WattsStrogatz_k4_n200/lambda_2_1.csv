@@ -1,0 +1,2 @@
+DataSet,NodeCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,GoalPriority,OperationCount
+WattsStrogatz,200,0.04020,2.1,2,0.8,0,5,442

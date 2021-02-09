@@ -1,0 +1,11 @@
+DataSet,NodeCount,GraphDensity,UserModel(lambda),Distance,ProbSelectUnknown,ProbReturnFirst,GoalPriority,OperationCount
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,12
+BarabasiAlbert,200,0.14472,1.0,1,0.8,0,5,133
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,65
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,78
+BarabasiAlbert,200,0.14472,1.0,1,0.8,0,5,44
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,93
+BarabasiAlbert,200,0.14472,1.0,1,0.8,0,5,79
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,165
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,69
+BarabasiAlbert,200,0.14472,1.0,2,0.8,0,5,31
