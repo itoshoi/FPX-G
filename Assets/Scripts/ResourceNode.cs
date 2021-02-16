@@ -21,6 +21,7 @@ public class ResourceNode : Node
     [SerializeField] private TextMeshPro titleText;
 
     // 余計なAPI呼び出しをなくすため、APIで取得時に関連ノードの名前をとっておく
+    // Propertyとかの情報を含めるなら, Classのリストとかの方が良いかも
     private readonly List<string> _linkedNodeNames = new List<string>();
 
     public string Label { get; private set; }

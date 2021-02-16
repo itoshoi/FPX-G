@@ -305,7 +305,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1521792500}
-  - component: {fileID: 1521792499}
+  - component: {fileID: 1521792502}
   m_Layer: 0
   m_Name: SimulationManager
   m_TagString: Untagged
@@ -313,18 +313,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1521792499
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1521792498}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3301dede6ba70ba9eaf015c9d6d56384, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1521792500
 Transform:
   m_ObjectHideFlags: 0
@@ -339,3 +327,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1521792502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1521792498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c516730ec9c562ba092c71c005069765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  progress: 0
+  startLambda: -3
+  endLambda: 2.1
+  dataSet: 2
+  allNodeCount: 200
+  goalNodeCount: 1
+  meanDegree: 6
+  selectVisibleGoal: 0
+  maxEpoc: 1000

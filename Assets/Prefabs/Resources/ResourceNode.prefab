@@ -135,6 +135,26 @@ PrefabInstance:
       propertyPath: m_firstOverflowCharacterIndex
       value: -1
       objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_fontColor.r
+      value: 0.9056604
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.9056604
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.9056604
+      objectReference: {fileID: 0}
+    - target: {fileID: 7780250448695659714, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
+        type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4293388263
+      objectReference: {fileID: 0}
     - target: {fileID: 7780250448695659773, guid: d9a188b8d5cef0d4799ba4dca101c1f9,
         type: 3}
       propertyPath: m_AnchoredPosition.y

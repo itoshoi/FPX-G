@@ -37,8 +37,8 @@ public class SimulationManager : MonoBehaviour
 			await StartSimulation();
 			// tasks.Add(StartSimulation());
 		}
-		// await Task.WhenAll(tasks);
-		// tasks.Clear();
+		await Task.WhenAll(tasks);
+		tasks.Clear();
 
 		// WattsStrogatzのk4 ~ k12までをシミュレート
 		for(int k = 4; k <= 12; k += 2){
@@ -76,7 +76,7 @@ public class SimulationManager : MonoBehaviour
         Debug.Log("Start Simulation");
 
 		var tasks = new List<Task>();
-        for (float l = startLambda; l < endLambda; l += 0.2f)
+        for (float l = startLambda; l < endLambda; l += 0.1f)
         {
 			var task_l = l;
 			var task = Task.Run(() => {Simulate(task_l, 0);});
@@ -107,7 +107,11 @@ public class SimulationManager : MonoBehaviour
         for (int i = 0; i < maxEpoc; i++)
         {
 			progress = (float)i / (float)maxEpoc;
-            userModel.Simulate();
+			var success = false;
+			while(!success){
+				success = userModel.Simulate();
+			}
+            
 			Thread.Sleep(16);
         }
 

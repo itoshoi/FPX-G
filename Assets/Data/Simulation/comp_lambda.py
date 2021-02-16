@@ -102,8 +102,8 @@ def plot(path_head, ax, ylim):
 
     ax.set_title('$p_v=0$.' + path_head[17:19], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=14)
-    ax.set_xlabel('$\lambda$')
-    ax.set_ylabel('操作回数')
+    ax.set_xlabel('$\lambda$', fontsize=20)
+    ax.set_ylabel('平均操作回数', fontsize=12)
     ax.set_ylim(0, ylim)
     ax.set_xlim(-3.0, 2.0)
     ax.grid(linestyle=':', color='grey')

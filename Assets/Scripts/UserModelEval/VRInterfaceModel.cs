@@ -149,7 +149,7 @@ public class VRInterfaceModel : MonoBehaviour
         switch (dataSet)
         {
             case SimRecord.DataSet.WattsStrogatz:
-                allNodes = MakeConnectedWattsStrogatzGraph(allNodeCount, meanDegree, 0.1f);
+                allNodes = MakeConnectedWattsStrogatzGraph(allNodeCount, meanDegree, 0.4f);
                 break;
             case SimRecord.DataSet.Tree:
                 allNodes = MakeTreeNodes();
@@ -195,10 +195,10 @@ public class VRInterfaceModel : MonoBehaviour
 
 		while(_goalNodes.Count < goalCount){
 			var goalNode = allNodes[rand.Next(0, allNodes.Length)];
-			if(0 < Distance(firstNode, goalNode) && !goalNode.IsGoal){
+			// if(0 < Distance(firstNode, goalNode) && !goalNode.IsGoal){
 				goalNode.IsGoal = true;
 				_goalNodes.Add(goalNode);
-			}
+			// }
 		}
 
         // }
@@ -215,6 +215,7 @@ public class VRInterfaceModel : MonoBehaviour
 
         // 視点ノードと終点ノードとの距離を記録
 		distanceFtoG = (float) _goalNodes.Sum(g => Distance(firstNode, g)) / (float) _goalNodes.Count;
+		// distanceFtoG = 0;
 
         return firstNode;
     }
@@ -392,17 +393,25 @@ public class VRInterfaceModel : MonoBehaviour
         return sum;
     }
 
-    public void Simulate()
+	// return: シミュレーションが成功したか
+    public bool Simulate()
     {
-		distanceFtoG = -1;
-		while(distanceFtoG == -1){
-			InitNodes();
-		}
+		// distanceFtoG = -1;
+		// while(distanceFtoG == -1){
+		// 	InitNodes();
+		// }
         // connectedが保証されてないので絶対に使ってはいけません.
         // MakeRandomGraph();
+		InitNodes();
 
-        while (!_currentNode.IsGoal)
+		var tryCount = 0;
+		const int maxTryCount = 1000;
+        while (!IsAllGoalKnown())
         {
+			tryCount++;
+			if(maxTryCount < tryCount)
+				return false;
+
 			// 選択可能な全ノード
 			var selectableNodes = _currentNode.GetAllLinkedNodes(MaxSelectHop);
 
@@ -441,17 +450,21 @@ public class VRInterfaceModel : MonoBehaviour
 			}
 
 			// 目的ノードが視界に入っていたら高確率で選択
+			var moved = false;
 			foreach(var goalNode in _goalNodes){
 				if(visibleNodes.Contains(goalNode)){
 					var r = rand.NextDouble();
-					if(r < pSelectVisibleGoal){
+					if(r < pSelectVisibleGoal && !goalNode.Known){
 						_currentNode = goalNode;
 						_currentNode.Known = true;
 						_opCount++;
-						break;
+						moved = true;
 					}
 				}
 			}
+
+			if(moved)
+				continue;
 
 			// 一定確率で始点ノードに戻る
             if ((float) rand.NextDouble() < pReturnFirst && _currentNode != _firstNode)
@@ -461,7 +474,7 @@ public class VRInterfaceModel : MonoBehaviour
                 continue;
 			}
 
-			if(_currentNode.IsGoal)
+			if(IsAllGoalKnown())
 				continue;
 
             var r1 = rand.NextDouble();
@@ -512,7 +525,18 @@ public class VRInterfaceModel : MonoBehaviour
         };
 
         records.Add(record);
+
+		return true;
     }
+
+	private bool IsAllGoalKnown(){
+		var result = true;
+		foreach(var g in _goalNodes)
+			if(!g.Known)
+				result = false;
+
+		return result;
+	}
 
     private int SelectHopByProbArray(float[] prob)
     {
@@ -604,19 +628,43 @@ public class VRInterfaceModel : MonoBehaviour
     }
 
 	private int Distance(SimNode node1, SimNode node2){
-		if(node1 == node2)
-			return 0;
-	
-		var dist = 0;
-        for(int i=1; i<6; i++){
-        	if(node1.GetLinkedNodes(i, false).Contains(node2)){
-				dist = i;
-        		break;
-        	}else if(i == 5){
-				dist = -1;
-        	}
-        }
+		const int maxHop = 4;
+		var lastNodes = new List<SimNode> { node1 };
+		// 既に探索済みのノードにはアクセスしないようにするため
+		var accessedNodes = new List<SimNode> { node1 };
 
-		return dist;
+		for (var i = 1; i < maxHop + 1; i++)
+		{
+			var lastNodesTmp = new List<SimNode>();
+			foreach (var node in lastNodes)
+			{
+				foreach(var linkNode in node.linkedNodes){
+					if(!accessedNodes.Contains(linkNode)){
+						lastNodesTmp.Add(linkNode);
+						accessedNodes.Add(linkNode);
+
+						if(linkNode == node2)
+							return i;
+					}
+				}
+			}
+			lastNodes = lastNodesTmp;
+		}
+
+		return -1;
+// 		if(node1 == node2)
+// 			return 0;
+	
+// 		var dist = 0;
+//         for(int i=1; i<6; i++){
+//         	if(node1.GetLinkedNodes(i, false).Contains(node2)){
+// 				dist = i;
+//         		break;
+//         	}else if(i == 5){
+// 				dist = -1;
+//         	}
+//         }
+
+// 		return dist;
 	}
 }

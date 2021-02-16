@@ -97,8 +97,8 @@ def plot(path_head, ax, ylim):
     if 1 < len(path_sp):
         ax.set_title(path_sp[1][0] + '=' + path_sp[1][1:], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=14)
-    ax.set_xlabel('$\lambda$')
-    ax.set_ylabel('操作回数')
+    ax.set_xlabel('$\lambda$', fontsize=20)
+    ax.set_ylabel('平均操作回数', fontsize=13)
     ax.set_ylim(0, ylim)
     ax.set_xlim(-3.0, 2.0)
     ax.grid(linestyle=':', color='grey')

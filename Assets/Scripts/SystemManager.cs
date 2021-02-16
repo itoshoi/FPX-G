@@ -10,7 +10,7 @@ public class SystemManager : SingletonMonoBehaviour<SystemManager>
     [SerializeField] private int hopCount;
     [SerializeField] private int linkedNodeLimit = 5;
 
-    public static GameObject NodeParent { get; private set; }
+    public static GameObject NodeParent { get; set; }
 
     public int HopCount => hopCount;
     public int LinkedNodeLimit => linkedNodeLimit;
