@@ -19,36 +19,37 @@ colors = 'rbg'
 
 
 def main():
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(16, 4))
+    plt.style.use('dark_background')
+    fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(16, 4))
     ax_ind = 0
 
     gmodel = 'BarabasiAlbert'
     n = 200
-    for m in [2, 4, 6]:
+    for m in [4]:
         path_head = f'{gmodel}_m{m}_n{n}'
-        legend = plot(path_head, axs[ax_ind], 100)
+        legend = plot(path_head, axs, 50)
         ax_ind += 1
 
     fig.legend(legend[0], legend[1], loc='upper center',
                ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.77,
                         bottom=0.15, left=0.05, right=0.98)
-    plt.savefig('figs/graph_lambda/barabasi.pdf')
+    plt.savefig('figs/graph_lambda/barabasi.png')
 
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(16, 4))
+    fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(16, 4))
     ax_ind = 0
     gmodel = 'WattsStrogatz'
     n = 200
-    for m in [4, 8, 12]:
+    for m in [8]:
         path_head = f'{gmodel}_k{m}_n{n}'
-        legend = plot(path_head, axs[ax_ind], 100)
+        legend = plot(path_head, axs, 100)
         ax_ind += 1
 
     fig.legend(legend[0], legend[1], loc='upper center',
                ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.77,
                         bottom=0.15, left=0.05, right=0.98)
-    plt.savefig('figs/graph_lambda/wattsstrogatz.pdf')
+    plt.savefig('figs/graph_lambda/wattsstrogatz.png')
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(16, 4))
     gmodel = 'Tree'
@@ -59,7 +60,7 @@ def main():
                ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.77,
                         bottom=0.15, left=0.05, right=0.98)
-    plt.savefig('figs/graph_lambda/tree.pdf')
+    plt.savefig('figs/graph_lambda/tree.png')
 
 
 def plot(path_head, ax, ylim):
@@ -74,11 +75,11 @@ def plot(path_head, ax, ylim):
             continue
 
         # print #operations in the baseline
-        df = pd.read_csv(f'{path}/lambda_10_0.csv')
-        y = df[(dist <= df['Distance']) & (df['Distance'] < dist + 1)]['OperationCount'].mean()
-        ax.plot([x[0], x[-1]], [y, y], label=f'距離={dist} (ブラウジング)',
-                linestyle=lstyles[dist-1], color='b', linewidth=1.5,
-                marker=None)
+        # df = pd.read_csv(f'{path}/lambda_10_0.csv')
+        # y = df[(dist <= df['Distance']) & (df['Distance'] < dist + 1)]['OperationCount'].mean()
+        # ax.plot([x[0], x[-1]], [y, y], label=f'距離={dist} (ブラウジング)',
+        #         linestyle=lstyles[dist-1], color=[0, 0.7, 1], linewidth=1.5,
+        #         marker=None)
 
         # print #operations in the proposed method
         ys = []
@@ -90,7 +91,7 @@ def plot(path_head, ax, ylim):
             y = df[(dist <= df['Distance']) & (df['Distance'] < dist + 1)]['OperationCount'].mean()
             ys.append(y)
         ax.plot(x, ys, label=f'距離={dist} (FPX-G)',
-                linestyle=lstyles[dist-1], linewidth=1.5, color='g',
+                linestyle=lstyles[dist-1], linewidth=1.5, color='y',
                 marker='', markersize=4, mfc='white')
 
     path_sp = path_head.split('_')

@@ -19,6 +19,7 @@ colors = 'rgb'
 
 
 def main():
+    plt.style.use('dark_background')
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
     ax_ind = 0
 
@@ -35,7 +36,7 @@ def main():
     #            ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.9,
                         bottom=0.15, left=0.1, right=0.9)
-    plt.savefig('figs/count-op/barabasi.pdf')
+    plt.savefig('figs/count-op/barabasi.png')
 
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
     ax_ind = 0
@@ -52,7 +53,7 @@ def main():
     #            ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.9,
                         bottom=0.15, left=0.1, right=0.9)
-    plt.savefig('figs/count-op/wattsstrogatz.pdf')
+    plt.savefig('figs/count-op/wattsstrogatz.png')
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
     gmodel = 'Tree'
@@ -64,7 +65,7 @@ def main():
     #            ncol=6, fontsize=16, mode='expand', markerscale=1.0)
     plt.subplots_adjust(hspace=0.5, wspace=0.2, top=0.9,
                         bottom=0.15, left=0.1, right=0.9)
-    plt.savefig('figs/count-op/tree.pdf')
+    plt.savefig('figs/count-op/tree.png')
 
 
 def plot(path_head, ax, ylim):
@@ -92,7 +93,7 @@ def plot(path_head, ax, ylim):
         #         linestyle='-', color='b', linewidth=2.5,
         #         marker=None)
         ax.hist(x, label='ブラウジング',
-                color='b', bins=20, density=True, alpha=0.5)
+                color=[0, 0.7, 1], bins=20, density=True, alpha=0.5)
         print('node count : ' + str(len(ops)))
         print('browsing mean : ' + str(ops.mean()))
         print('browsing median : ' + str(ops.median()))
@@ -110,7 +111,7 @@ def plot(path_head, ax, ylim):
         #         linestyle='-', color='g', linewidth=2.5,
         #         marker=None)
         ax.hist(ops, label='FPX-G',
-                color='g', bins=20, density=True, alpha=0.5)
+                color='y', bins=20, density=True, alpha=0.5)
         print('node count : ' + str(len(ops)))
         print('fpx-g mean : ' + str(ops.mean()))
         print('fpx-g median : ' + str(ops.median()))
